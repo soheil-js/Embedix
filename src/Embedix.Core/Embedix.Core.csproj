@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>netstandard2.0;net45;net6.0</TargetFrameworks>
+    <!-- It's not possible to target .NET Framework 3.5 when using dotnet build
+         https://github.com/Microsoft/msbuild/issues/1333 -->
+    <NoTargetFrameworkNet35 Condition=" '$(NoTargetFrameworkNet35)' == '' AND '$(MSBuildRuntimeType)' == 'Core' ">true</NoTargetFrameworkNet35>
+    <TargetFrameworks Condition=" '$(NoTargetFrameworkNet35)' != 'true' ">$(TargetFrameworks);net35</TargetFrameworks>
+	<RootNamespace>Embedix.Core</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Authors>Soheil Jashnsaz</Authors>
+    <Description>Embed .NET libraries into executables</Description>
+    <Copyright>Copyright (c) 2026 Soheil Jashnsaz.</Copyright>
+    <PackageProjectUrl>https://github.com/soheil-js</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/soheil-js/Embedix</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>costura-fody, ilmerge, embed, references, library, resource, resources, dnlib</PackageTags>
+	<Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dnlib" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

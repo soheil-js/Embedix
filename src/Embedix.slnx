@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Embedix.CLI/Embedix.CLI.csproj" />
+  <Project Path="Embedix.Core/Embedix.Core.csproj" />
+  <Project Path="Embedix.GUI/Embedix.GUI.csproj" />
+</Solution>

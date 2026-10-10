@@ -1,0 +1,106 @@
+﻿using System;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+
+namespace Embedix.Core.Resolver
+{
+    internal class AssemblyResolver
+    {
+        public static void Resolve()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            AssemblyName assemblyName = new AssemblyName(args.Name);
+
+            var assembly = ReadExistingAssembly(assemblyName);
+            if (assembly != null)
+                return assembly;
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"Embedded.{assemblyName.Name}.dll"))
+            {
+                byte[] data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+                byte[] unzip = Decompress(data);
+                return Assembly.Load(unzip);
+            }
+        }
+
+        private static Assembly ReadExistingAssembly(AssemblyName name)
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                AssemblyName assemblyName = assembly.GetName();
+                if (string.Equals(assemblyName.Name, name.Name, StringComparison.InvariantCultureIgnoreCase) && string.Equals(CultureToString(assemblyName.CultureInfo), CultureToString(name.CultureInfo), StringComparison.InvariantCultureIgnoreCase))
+                    return assembly;
+            }
+
+            return null;
+        }
+
+        private static string CultureToString(CultureInfo culture)
+        {
+            if (culture == null)
+                return string.Empty;
+
+            return culture.Name;
+        }
+
+        //private static byte[] Decompress(byte[] data)
+        //{
+        //    try
+        //    {
+        //        using (MemoryStream decompressedStream = new MemoryStream())
+        //        {
+        //            using (MemoryStream compressStream = new MemoryStream(data))
+        //            {
+        //                using (DeflateStream deflateStream = new DeflateStream(compressStream, CompressionMode.Decompress))
+        //                {
+        //                    deflateStream.CopyTo(decompressedStream);
+        //                }
+        //            }
+        //            return decompressedStream.ToArray();
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        return null;
+        //    }
+        //}
+
+
+        private static byte[] Decompress(byte[] data)
+        {
+            try
+            {
+                using (MemoryStream decompressedStream = new MemoryStream())
+                {
+                    using (MemoryStream compressStream = new MemoryStream(data))
+                    {
+                        using (DeflateStream deflateStream = new DeflateStream(compressStream, CompressionMode.Decompress))
+                        {
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+
+                            while ((bytesRead = deflateStream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                decompressedStream.Write(buffer, 0, bytesRead);
+                            }
+                        }
+                    }
+
+                    return decompressedStream.ToArray();
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+    }
+}
