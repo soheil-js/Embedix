@@ -81,47 +81,51 @@ namespace Embedix.GUI.View
         {
             if (!string.IsNullOrEmpty(_file))
             {
+
                 var automatically = chkAutomatically.Checked;
                 var writePdb = chkWritePdb.Checked;
 
-                if (automatically)
-                {
-                    ClearLibraries();
-                    GetRefs(_file);
-                }
+                Task.Run(() => {
 
-                if (_libraries.Count > 0)
-                {
-                    using AssemblyLoader assembly = new AssemblyLoader(_file);
-                    AssemblyContext context = assembly.GetAssemblyContext();
-                    Embedder.Execute(context, _libraries.ToArray());
-                    string? address = Address(_file);
-                    assembly.Write(address, writePdb);
-
-                    if (Path.GetExtension(_file) == ".dll")
+                    if (automatically)
                     {
-                        var name = Path.GetFileNameWithoutExtension(_file);
-                        var dir = Path.GetDirectoryName(_file);
-                        var file = Path.Combine(dir!, name);
-                        string runtimeconfig = $"{file}.runtimeconfig.json";
-                        if (File.Exists(runtimeconfig))
-                        {
-                            string exe = $"{file}.exe";
-                            try
-                            {
-                                File.Copy(exe, Address(exe)!);
-                                File.Copy(runtimeconfig, Address(runtimeconfig)!);
-                            }
-                            catch
-                            {
-                            }
-                        }
+                        ClearLibraries();
+                        GetRefs(_file);
                     }
 
-                    MessageBox.Show("Completed!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                    MessageBox.Show("Please select the desired libraries!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (_libraries.Count > 0)
+                    {
+                        using AssemblyLoader assembly = new AssemblyLoader(_file);
+                        AssemblyContext context = assembly.GetAssemblyContext();
+                        Embedder.Execute(context, _libraries.ToArray());
+                        string? address = Address(_file);
+                        assembly.Write(address, writePdb);
+
+                        if (Path.GetExtension(_file) == ".dll")
+                        {
+                            var name = Path.GetFileNameWithoutExtension(_file);
+                            var dir = Path.GetDirectoryName(_file);
+                            var file = Path.Combine(dir!, name);
+                            string runtimeconfig = $"{file}.runtimeconfig.json";
+                            if (File.Exists(runtimeconfig))
+                            {
+                                string exe = $"{file}.exe";
+                                try
+                                {
+                                    File.Copy(exe, Address(exe)!);
+                                    File.Copy(runtimeconfig, Address(runtimeconfig)!);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+
+                        MessageBox.Show("Completed!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                        MessageBox.Show("Please select the desired libraries!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                });
             }
             else
                 MessageBox.Show("Please select the desired program!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -225,13 +229,19 @@ namespace Embedix.GUI.View
         private void AddToLibraries(string path)
         {
             _libraries.Add(path);
-            lbLibraries.Items.Add(Path.GetFileName(path));
+            Invoke((MethodInvoker)delegate
+            {
+                lbLibraries.Items.Add(Path.GetFileName(path));
+            });
         }
 
         private void ClearLibraries()
         {
             _libraries.Clear();
-            lbLibraries.Items.Clear();
+            Invoke((MethodInvoker)delegate
+            {
+                lbLibraries.Items.Clear();
+            });
         }
 
         private string? Address(string path)
