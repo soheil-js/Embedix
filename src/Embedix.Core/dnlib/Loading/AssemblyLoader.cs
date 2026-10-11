@@ -1,11 +1,10 @@
 ﻿using dnlib.DotNet;
 using dnlib.DotNet.Writer;
-using dnlib.Extensions;
 using dnlib.PE;
 using System;
 using System.IO;
 
-namespace dnlib.Loading
+namespace Embedix.Core.dnlib.Loading
 {
     public class AssemblyLoader : IDisposable
     {

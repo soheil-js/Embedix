@@ -1,9 +1,9 @@
+using dnlib.DotNet;
+using Embedix.Core.dnlib.Injection.Caching;
 using System;
 using System.Collections.Generic;
-using dnlib.DotNet;
-using dnlib.Injection.Caching;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Resolves and caches references between the source module (where types are injected

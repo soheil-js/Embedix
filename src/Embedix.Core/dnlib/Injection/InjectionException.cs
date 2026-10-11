@@ -1,7 +1,7 @@
-using System;
 using dnlib.DotNet;
+using System;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Thrown by <see cref="Injector.Inject"/> when a <see cref="TypeDef"/> fails to be

@@ -1,9 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Deep-copies a method body (locals, instructions and exception handlers) from a

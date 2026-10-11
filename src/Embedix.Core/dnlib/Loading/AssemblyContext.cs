@@ -1,11 +1,10 @@
-﻿using System;
+﻿using dnlib.DotNet;
+using Embedix.Core.dnlib.Injection;
+using Embedix.Core.dnlib.Resources;
+using System;
 using System.Collections.Generic;
-using dnlib.DotNet;
-using dnlib.DotNet.Resources;
-using dnlib.Extensions;
-using dnlib.Injection;
 
-namespace dnlib.Loading
+namespace Embedix.Core.dnlib.Loading
 {
 	public class AssemblyContext
     {

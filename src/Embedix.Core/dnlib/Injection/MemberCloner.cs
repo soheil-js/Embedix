@@ -1,6 +1,6 @@
 using dnlib.DotNet;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Creates empty ("skeleton") copies of dnlib definitions. A clone only carries the

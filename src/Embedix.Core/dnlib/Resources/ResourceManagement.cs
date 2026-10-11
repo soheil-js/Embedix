@@ -1,7 +1,8 @@
 ﻿using System.IO;
-using dnlib.Loading;
+using dnlib.DotNet;
+using Embedix.Core.dnlib.Loading;
 
-namespace dnlib.DotNet.Resources
+namespace Embedix.Core.dnlib.Resources
 {
     public class ResourceManagement
     {

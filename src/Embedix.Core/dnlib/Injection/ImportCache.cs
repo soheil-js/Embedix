@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace dnlib.Injection.Caching
+namespace Embedix.Core.dnlib.Injection.Caching
 {
     /// <summary>
     /// Generic memoizing cache used to avoid importing (or otherwise re-computing)

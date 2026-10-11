@@ -1,5 +1,5 @@
 ﻿using dnlib.DotNet.Emit;
-using dnlib.Loading;
+using Embedix.Core.dnlib.Loading;
 using Embedix.Core.Resolver;
 using System.IO;
 using System.IO.Compression;

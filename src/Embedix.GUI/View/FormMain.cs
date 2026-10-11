@@ -1,6 +1,6 @@
 ﻿using dnlib.DotNet;
-using dnlib.Loading;
 using Embedix.Core;
+using Embedix.Core.dnlib.Loading;
 using Embedix.GUI.Utility;
 using System.Diagnostics;
 using System.Text;
@@ -293,7 +293,7 @@ namespace Embedix.GUI.View
             if (string.IsNullOrWhiteSpace(url))
                 return false;
 
-            Uri uri;
+            Uri? uri;
             if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out uri))
                 return false;
 

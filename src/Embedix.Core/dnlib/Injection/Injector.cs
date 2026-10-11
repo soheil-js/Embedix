@@ -1,9 +1,9 @@
+using dnlib.DotNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using dnlib.DotNet;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Injects (deep-copies) <see cref="TypeDef"/>s - and everything they transitively

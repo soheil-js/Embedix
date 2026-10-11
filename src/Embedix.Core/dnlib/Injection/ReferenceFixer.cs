@@ -1,8 +1,8 @@
+using dnlib.DotNet;
 using System;
 using System.Collections.Generic;
-using dnlib.DotNet;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// After a type tree has been fully copied into the target module, rewrites any

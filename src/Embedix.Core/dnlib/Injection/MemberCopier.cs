@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using dnlib.DotNet;
+using System.Collections.Generic;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Fills in the details of definitions that have already been cloned into the target

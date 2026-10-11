@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using dnlib.DotNet;
+using System.Collections.Generic;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Builds skeleton copies of a <see cref="TypeDef"/> tree and fills them in, split into

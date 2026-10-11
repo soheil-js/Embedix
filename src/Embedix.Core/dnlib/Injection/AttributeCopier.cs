@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using dnlib.DotNet;
+using System.Collections.Generic;
 
-namespace dnlib.Injection
+namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
     /// Deep-copies <see cref="CustomAttribute"/>s and <see cref="DeclSecurity"/> declarations,

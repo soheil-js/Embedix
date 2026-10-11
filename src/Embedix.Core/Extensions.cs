@@ -1,10 +1,10 @@
 ﻿using dnlib.DotNet;
-using dnlib.Injection;
-using dnlib.Loading;
+using Embedix.Core.dnlib.Injection;
+using Embedix.Core.dnlib.Loading;
 
-namespace dnlib.Extensions
+namespace Embedix.Core
 {
-    public static class Extension
+    public static class Extensions
     {
         public static AssemblyContext GetAssemblyContext(this ModuleDefMD module)
         {
