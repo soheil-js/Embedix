@@ -121,14 +121,22 @@ namespace Embedix.GUI.View
                             }
                         }
 
-                        MessageBox.Show("Completed!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Invoke((MethodInvoker)delegate
+                        {
+                            MessageBox.Show("Assembly embedding completed successfully.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        });
                     }
                     else
-                        MessageBox.Show("Please select the desired libraries!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    {
+                        Invoke((MethodInvoker)delegate
+                        {
+                            MessageBox.Show("No libraries selected for embedding.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        });
+                    }
                 });
             }
             else
-                MessageBox.Show("Please select the desired program!", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please select an assembly to process.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void chkAutomatically_CheckedChanged(object sender, EventArgs e)
