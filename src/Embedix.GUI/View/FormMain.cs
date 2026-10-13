@@ -90,7 +90,7 @@ namespace Embedix.GUI.View
                     if (automatically)
                     {
                         ClearLibraries();
-                        GetRefs(_file);
+                        ResolveReferences(_file);
                     }
 
                     if (_libraries.Count > 0)
@@ -269,7 +269,7 @@ namespace Embedix.GUI.View
             return null;
         }
 
-        private void GetRefs(string file)
+        private void ResolveReferences(string file)
         {
             using AssemblyLoader assembly = new AssemblyLoader(file);
             string? dir = Path.GetDirectoryName(file);
@@ -282,7 +282,7 @@ namespace Embedix.GUI.View
                     if (File.Exists(path) && !_libraries.Contains(path))
                     {
                         AddToLibraries(path);
-                        GetRefs(path);
+                        ResolveReferences(path);
                     }
                 }
             }
