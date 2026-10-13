@@ -7,6 +7,6 @@
         public IReadOnlyList<string> Libraries { get; init; } = Array.Empty<string>();
         public bool AutoResolve { get; init; }
         public bool WritePdb { get; init; } = true;
-        public bool Overwrite { get; init; }
+        public bool Overwrite { get; init; } = true;
     }
 }

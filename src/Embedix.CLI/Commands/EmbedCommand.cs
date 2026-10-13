@@ -12,13 +12,13 @@ namespace Embedix.CLI.Commands
             var outputOption = new OutputOption();
             var libraryOption = new LibraryOption();
             var noPdbOption = new NoPdbOption();
-            var overwriteOption = new OverwriteOption();
+            var noOverwriteOption = new NoOverwriteOption();
 
             Options.Add(inputOption);
             Options.Add(outputOption);
             Options.Add(libraryOption);
             Options.Add(noPdbOption);
-            Options.Add(overwriteOption);
+            Options.Add(noOverwriteOption);
 
             SetAction(async (parseResult, cancellationToken) =>
             {
@@ -26,14 +26,14 @@ namespace Embedix.CLI.Commands
                 var output = parseResult.GetValue(outputOption);
                 var libraries = parseResult.GetValue(libraryOption) ?? Array.Empty<string>();
                 var noPdb = parseResult.GetValue(noPdbOption);
-                var overwrite = parseResult.GetValue(overwriteOption);
+                var noOverwrite = parseResult.GetValue(noOverwriteOption);
 
                 return await handler.ExecuteAsync(
                     input,
                     output,
                     libraries,
                     noPdb,
-                    overwrite,
+                    noOverwrite,
                     cancellationToken);
             });
         }

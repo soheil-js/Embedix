@@ -31,27 +31,18 @@ namespace Embedix.CLI.Services
                 using (Serilog.Context.LogContext.PushProperty("InputAssembly", inputPath))
                 {
                     _log.Information("Starting assembly embedding.");
-                    _log.Debug("Automatic reference resolution: {AutoResolve}; PDB generation: {WritePdb}.",
-                        request.AutoResolve, request.WritePdb);
+                    _log.Debug(
+                        "Options: AutoResolve={AutoResolve}; WritePdb={WritePdb}; Overwrite={Overwrite}; Output={RequestedOutput}.",
+                        request.AutoResolve,
+                        request.WritePdb,
+                        request.Overwrite,
+                        string.IsNullOrWhiteSpace(request.OutputPath) ? "<default>" : request.OutputPath);
 
                     if (!File.Exists(inputPath))
                     {
                         _log.Warning("Input assembly does not exist: {InputPath}", inputPath);
                         throw new FileNotFoundException("Input assembly was not found.", inputPath);
                     }
-
-                    string outputPath = string.IsNullOrWhiteSpace(request.OutputPath)
-                        ? Address(inputPath)
-                        : Path.GetFullPath(request.OutputPath);
-
-                    if (string.Equals(inputPath, outputPath, StringComparison.OrdinalIgnoreCase))
-                    {
-                        _log.Warning("Input and output paths resolve to the same file: {OutputPath}", outputPath);
-                        throw new InvalidOperationException("Input and output paths must be different.");
-                    }
-
-                    _log.Information("Output path: {OutputPath}", outputPath);
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     string[] libraries;
 
@@ -65,7 +56,11 @@ namespace Embedix.CLI.Services
                     }
                     else
                     {
+                        if (request.Libraries is null)
+                            throw new InvalidOperationException("The library collection cannot be null when automatic resolution is disabled.");
+
                         libraries = request.Libraries
+                            .Where(path => !string.IsNullOrWhiteSpace(path))
                             .Select(Path.GetFullPath)
                             .Distinct(StringComparer.OrdinalIgnoreCase)
                             .ToArray();
@@ -92,35 +87,52 @@ namespace Embedix.CLI.Services
                         _log.Debug("Library queued for embedding: {LibraryPath}", library);
                     }
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // Select the destination only after validating the input and all libraries.
+                    // The directory is created immediately before writing, so early failures
+                    // do not leave an empty output directory behind.
+                    string outputDirectory = GetOutputDirectory(inputPath, request.OutputPath, request.Overwrite);
+                    string outputPath = Path.Combine(outputDirectory, Path.GetFileName(inputPath));
 
-                    string? outputDirectory = Path.GetDirectoryName(outputPath);
-                    if (!string.IsNullOrEmpty(outputDirectory))
+                    if (string.Equals(inputPath, outputPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        Directory.CreateDirectory(outputDirectory);
-                        _log.Debug("Ensured output directory exists: {OutputDirectory}", outputDirectory);
+                        _log.Warning("Input and output paths resolve to the same file: {OutputPath}", outputPath);
+                        throw new InvalidOperationException("Input and output paths must be different.");
                     }
 
-                    _log.Information("Loading input assembly.");
-                    using (AssemblyLoader assembly = new AssemblyLoader(inputPath))
+                    using (Serilog.Context.LogContext.PushProperty("OutputDirectory", outputDirectory))
+                    using (Serilog.Context.LogContext.PushProperty("OutputAssembly", outputPath))
                     {
-                        AssemblyContext context = assembly.GetAssemblyContext();
-
-                        _log.Information("Embedding {LibraryCount} library/libraries.", libraries.Length);
-                        Embedder.Execute(context, libraries);
-                        _log.Debug("Assembly embedding operation completed in memory.");
+                        _log.Information("Selected output directory: {OutputDirectory}", outputDirectory);
+                        _log.Information("Output assembly path: {OutputPath}", outputPath);
+                        _log.Debug("Overwrite existing output: {Overwrite}", request.Overwrite);
 
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        _log.Information("Writing output assembly. PDB generation: {WritePdb}.", request.WritePdb);
-                        assembly.Write(outputPath, request.WritePdb);
+                        _log.Information("Loading input assembly.");
+                        using (AssemblyLoader assembly = new AssemblyLoader(inputPath))
+                        {
+                            AssemblyContext context = assembly.GetAssemblyContext();
+
+                            _log.Information("Embedding {LibraryCount} library/libraries.", libraries.Length);
+                            Embedder.Execute(context, libraries);
+                            _log.Debug("Assembly embedding operation completed in memory.");
+
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            Directory.CreateDirectory(outputDirectory);
+                            _log.Debug("Output directory is ready: {OutputDirectory}", outputDirectory);
+
+                            _log.Information("Writing output assembly. PDB generation: {WritePdb}.", request.WritePdb);
+                            assembly.Write(outputPath, request.WritePdb);
+                        }
+
+                        _log.Information("Output assembly written successfully.");
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                        CopyRuntimeFiles(inputPath, outputPath);
+
+                        _log.Information("Assembly embedding completed successfully.");
                     }
-
-                    _log.Information("Output assembly written successfully: {OutputPath}", outputPath);
-
-                    CopyRuntimeFiles(inputPath, outputPath);
-
-                    _log.Information("Assembly embedding completed successfully.");
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -137,18 +149,40 @@ namespace Embedix.CLI.Services
             return Task.CompletedTask;
         }
 
-        private string Address(string inputPath)
+        private string GetOutputDirectory(string inputPath, string? requestedOutputPath, bool overwrite)
         {
-            string directory = Path.GetDirectoryName(inputPath)
+            string inputDirectory = Path.GetDirectoryName(inputPath)
                 ?? throw new InvalidOperationException("Could not determine the input directory.");
 
-            string outputDirectory = Path.Combine(directory, "Embedix");
-            Directory.CreateDirectory(outputDirectory);
+            string baseDirectory = string.IsNullOrWhiteSpace(requestedOutputPath)
+                ? Path.Combine(inputDirectory, "Embedix")
+                : Path.IsPathRooted(requestedOutputPath)
+                    ? Path.GetFullPath(requestedOutputPath)
+                    : Path.GetFullPath(Path.Combine(inputDirectory, requestedOutputPath));
 
-            string outputPath = Path.Combine(outputDirectory, Path.GetFileName(inputPath));
-            _log.Debug("Using default output path: {OutputPath}", outputPath);
+            if (File.Exists(baseDirectory))
+                throw new IOException($"The output path points to a file, not a directory: {baseDirectory}");
 
-            return outputPath;
+            if (overwrite)
+            {
+                _log.Debug("Overwrite is enabled; using the requested output directory: {OutputDirectory}", baseDirectory);
+                return baseDirectory;
+            }
+
+            string candidate = baseDirectory;
+            string parentDirectory = Path.GetDirectoryName(baseDirectory)
+                ?? throw new InvalidOperationException("Could not determine the parent output directory.");
+            string directoryName = Path.GetFileName(baseDirectory);
+            int index = 1;
+
+            while (Directory.Exists(candidate) || File.Exists(candidate))
+            {
+                candidate = Path.Combine(parentDirectory, $"{directoryName}{index}");
+                index++;
+            }
+
+            _log.Debug("Overwrite is disabled; selected the first unused output directory: {OutputDirectory}", candidate);
+            return candidate;
         }
 
         private void CopyRuntimeFiles(string inputPath, string outputPath)
@@ -159,28 +193,35 @@ namespace Embedix.CLI.Services
                 return;
             }
 
-            string inputDirectory = Path.GetDirectoryName(inputPath)!;
-            string outputDirectory = Path.GetDirectoryName(outputPath)!;
+            string inputDirectory = Path.GetDirectoryName(inputPath)
+                ?? throw new InvalidOperationException("Could not determine the input directory for runtime files.");
+            string outputDirectory = Path.GetDirectoryName(outputPath)
+                ?? throw new InvalidOperationException("Could not determine the output directory for runtime files.");
             string name = Path.GetFileNameWithoutExtension(inputPath);
 
             string runtimeConfig = Path.Combine(inputDirectory, $"{name}.runtimeconfig.json");
             string executable = Path.Combine(inputDirectory, $"{name}.exe");
+            bool executableExists = File.Exists(executable);
+            bool runtimeConfigExists = File.Exists(runtimeConfig);
 
-            if (!File.Exists(runtimeConfig) || !File.Exists(executable))
+            if (!executableExists || !runtimeConfigExists)
             {
                 _log.Debug(
-                    "Skipping runtime sidecar copy; expected files were not both found. Executable: {ExecutableExists}; Runtime config: {RuntimeConfigExists}.",
-                    File.Exists(executable), File.Exists(runtimeConfig));
+                    "Skipping runtime sidecar copy because both companion files are required. Executable exists: {ExecutableExists}; runtime config exists: {RuntimeConfigExists}.",
+                    executableExists,
+                    runtimeConfigExists);
                 return;
             }
 
             string outputExecutable = Path.Combine(outputDirectory, $"{name}.exe");
             string outputRuntimeConfig = Path.Combine(outputDirectory, $"{name}.runtimeconfig.json");
 
-            _log.Debug("Copying runtime sidecar files to {OutputDirectory}.", outputDirectory);
+            _log.Information("Copying runtime companion files to {OutputDirectory}.", outputDirectory);
             File.Copy(executable, outputExecutable, overwrite: true);
+            _log.Debug("Copied runtime executable: {OutputExecutable}", outputExecutable);
+
             File.Copy(runtimeConfig, outputRuntimeConfig, overwrite: true);
-            _log.Debug("Runtime sidecar files copied successfully.");
+            _log.Debug("Copied runtime configuration: {OutputRuntimeConfig}", outputRuntimeConfig);
         }
 
         private void ResolveReferences(string inputPath, List<string> libraries)
@@ -195,12 +236,14 @@ namespace Embedix.CLI.Services
                     continue;
 
                 string libraryPath = Path.Combine(directory, $"{assemblyReference.Name}.dll");
-                _log.Verbose("Checking reference {ReferenceName} at {ReferencePath}.",
-                    assemblyReference.Name, libraryPath);
+                _log.Verbose(
+                    "Checking reference {ReferenceName} at {ReferencePath}.",
+                    assemblyReference.Name,
+                    libraryPath);
 
                 if (!File.Exists(libraryPath))
                 {
-                    _log.Verbose("Reference was not found beside the input assembly: {ReferencePath}", libraryPath);
+                    _log.Verbose("Reference was not found beside the current assembly: {ReferencePath}", libraryPath);
                     continue;
                 }
 
