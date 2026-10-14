@@ -10,7 +10,7 @@ namespace Embedix.CLI.Commands
         {
             var inputOption = new InputOption();
             var outputOption = new OutputOption();
-            var libraryOption = new LibraryOption();
+            var libraryOption = new LibrariesOption();
             var noPdbOption = new NoPdbOption();
             var noOverwriteOption = new NoOverwriteOption();
 

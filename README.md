@@ -74,16 +74,11 @@ It is suitable for developers who prefer working with a graphical application in
 
 ### CLI
 
-The command-line interface makes Embedix suitable for scripting and automated workflows.
+The command-line interface allows you to embed managed .NET dependencies into compiled assemblies and automate the process through scripts and CI/CD pipelines.
 
-Typical use cases include:
+Features include automatic dependency resolution, manual library selection, configurable output directories, optional PDB generation and output overwrite control.
 
-- Processing assemblies from build scripts.
-- Running embedding operations in CI/CD pipelines.
-- Integrating assembly processing into release workflows.
-- Automating repetitive dependency-embedding tasks.
-
-For the available commands and options, consult the CLI's built-in help output.
+For installation instructions, available options, command examples and usage details, see the [CLI Usage Guide](docs/cli.md).
 
 ### Core Library
 

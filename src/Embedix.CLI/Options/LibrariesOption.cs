@@ -2,10 +2,9 @@
 
 namespace Embedix.CLI.Options
 {
-    public sealed class LibraryOption : Option<string[]>
+    public sealed class LibrariesOption : Option<string[]>
     {
-        public LibraryOption()
-            : base("--library", "-l")
+        public LibrariesOption() : base("--libraries", "-l")
         {
             Description = "Path to one or more libraries to embed.";
             AllowMultipleArgumentsPerToken = true;
