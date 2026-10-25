@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 
-namespace Embedix.Core.Resolver
+namespace Embedix.Core.Payload
 {
     internal class AssemblyResolver
     {
@@ -49,28 +49,6 @@ namespace Embedix.Core.Resolver
 
             return culture.Name;
         }
-
-        //private static byte[] Decompress(byte[] data)
-        //{
-        //    try
-        //    {
-        //        using (MemoryStream decompressedStream = new MemoryStream())
-        //        {
-        //            using (MemoryStream compressStream = new MemoryStream(data))
-        //            {
-        //                using (DeflateStream deflateStream = new DeflateStream(compressStream, CompressionMode.Decompress))
-        //                {
-        //                    deflateStream.CopyTo(decompressedStream);
-        //                }
-        //            }
-        //            return decompressedStream.ToArray();
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        return null;
-        //    }
-        //}
 
 
         private static byte[] Decompress(byte[] data)

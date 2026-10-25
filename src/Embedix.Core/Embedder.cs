@@ -1,6 +1,7 @@
-﻿using dnlib.DotNet.Emit;
+﻿using dnlib.DotNet;
+using dnlib.DotNet.Emit;
 using Embedix.Core.dnlib.Loading;
-using Embedix.Core.Resolver;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -20,14 +21,60 @@ namespace Embedix.Core
                 context.Resources.Add($"Embedded.{name}", zip);
             }
 
-            //Class injection
-            var typeDef = context.GetTypeDef(typeof(AssemblyResolver));
-            var copyTypeDef = context.Merge(typeDef, "AssemblyResolver", "Embedix");
-            if (copyTypeDef != null)
+            ModuleDefMD payloadModule = null;
+            try
             {
-                //Call the load method in the <Module> class
-                var method = copyTypeDef.Methods.Single(m => m.Name == "Resolve");
-                context.GlobalTypeStaticConstructor.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Call, method));
+                string resourceName = SelectPayloadResource(context.Module);
+                payloadModule = LoadPayloadModule(resourceName);
+
+                var typeDef = payloadModule.Find("Embedix.Core.Payload.AssemblyResolver", false);
+
+                var copyTypeDef = context.Merge(typeDef, "AssemblyResolver", "Embedix");
+                if (copyTypeDef != null)
+                {
+                    var method = copyTypeDef.Methods.Single(m => m.Name == "Resolve");
+                    context.GlobalTypeStaticConstructor.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Call, method));
+                }
+            }
+            finally
+            {
+                payloadModule?.Dispose();
+            }
+        }
+
+        private static string SelectPayloadResource(ModuleDef targetModule)
+        {
+            var corLibAssemblyRef = targetModule.CorLibTypes.AssemblyRef;
+            string corLibName = corLibAssemblyRef?.Name.String;
+
+            if (string.IsNullOrEmpty(corLibName))
+                return "Payload.net6.0.dll";
+
+            if (string.Equals(corLibName, "mscorlib", StringComparison.OrdinalIgnoreCase))
+                return "Payload.net45.dll";
+
+            if (string.Equals(corLibName, "System.Private.CoreLib", StringComparison.OrdinalIgnoreCase) || string.Equals(corLibName, "System.Runtime", StringComparison.OrdinalIgnoreCase))
+                return "Payload.net6.0.dll";
+
+            if (string.Equals(corLibName, "netstandard", StringComparison.OrdinalIgnoreCase))
+                return "Payload.netstandard2.0.dll";
+
+            if (corLibName.StartsWith("mscorlib", StringComparison.OrdinalIgnoreCase))
+                return "Payload.net45.dll";
+
+            return "Payload.net6.0.dll";
+        }
+
+        private static ModuleDefMD LoadPayloadModule(string resourceName)
+        {
+            using (var stream = typeof(Embedder).Assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new InvalidOperationException($"Resource '{resourceName}' not found.");
+
+                var buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                return ModuleDefMD.Load(buffer, ModuleDef.CreateModuleContext());
             }
         }
 

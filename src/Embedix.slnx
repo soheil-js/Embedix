@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Embedix.CLI/Embedix.CLI.csproj" />
+  <Project Path="Embedix.Core.Payload/Embedix.Core.Payload.csproj" Id="fbfd63f9-9f43-46bf-b253-fdb0d8ffad1c" />
   <Project Path="Embedix.Core/Embedix.Core.csproj" />
   <Project Path="Embedix.GUI/Embedix.GUI.csproj" />
 </Solution>
