@@ -1,121 +1,46 @@
 # Embedix
 
-**A modular .NET assembly embedding toolkit with a Core library, GUI and CLI.**
+**Embed .NET dependencies directly into a compiled assembly — no separate DLLs to ship.**
+
+Embedix compresses your managed dependencies, stores them as embedded resources inside the target assembly, and injects the runtime loading logic needed to resolve them in memory. The result: a single, self-contained assembly.
 
 ## ✨ Features
 
-- 📦 **Assembly Embedding** — Embed managed .NET dependencies into a target assembly.
-- 🗜️ **Compression** — Compress embedded assemblies to reduce their resource size.
-- 🧠 **In-Memory Loading** — Resolve and load embedded managed assemblies without extracting them to disk.
-- 🔍 **Automatic Dependency Detection** — Detect referenced libraries automatically.
-- 🎯 **Manual Library Selection** — Choose which dependencies to embed.
-- 🖥️ **Graphical Interface** — Process assemblies through a desktop GUI.
-- ⌨️ **Command-Line Interface** — Run assembly embedding from a terminal or automation script.
-- 🧩 **Modular Architecture** — Separate the core functionality from the GUI and CLI.
-- 🔧 **Post-Build Processing** — Process compiled assemblies without requiring a dedicated build-time integration.
-
-## 🏗️ Architecture
-
-Embedix separates its core assembly-processing functionality from its user-facing applications.
-
-| Component | Purpose |
-|---|---|
-| **Embedix.Core** | Core assembly-processing and embedding functionality |
-| **Embedix.GUI** | Graphical interface for configuring and executing embedding operations |
-| **Embedix.CLI** | Command-line interface for scripting and automated workflows |
-
-The Core library contains the underlying assembly manipulation logic, including code injection, member handling, assembly loading and related utilities. The GUI and CLI provide different ways to access this functionality.
-
-### Project Structure
-
-The repository is organized around the following components:
-
-```text
-Embedix/
-├── src/
-│   ├── Embedix.Core/
-│   │   └── dnlib/
-│   │       ├── Injection/
-│   │       ├── Loading/
-│   │       └── Resources/
-│   ├── Embedix.GUI/
-│   │   ├── Utility/
-│   │   └── View/
-│   └── Embedix.CLI/
-│       ├── Commands/
-│       ├── Options/
-│       └── Services/
-├── README.md
-├── .gitignore
-└── LICENSE
-```
-
-*Note: This is a high-level representation of the project layout. Refer to the repository for the complete and current directory structure.*
+- 📦 Embed managed .NET dependencies into any compiled assembly
+- 🗜️ Automatic compression to keep the output small
+- 🧠 In-memory resolution — no DLLs extracted to disk at runtime
+- 🔍 Automatic dependency detection, or pick libraries manually
+- 🖥️ GUI for a point-and-click workflow
+- ⌨️ CLI for scripting, CI/CD and automation
 
 ## ⚙️ How It Works
 
-Embedix operates on compiled .NET assemblies rather than source code.
+1. Pick the compiled assembly you want to process.
+2. Select its dependencies — automatically or manually.
+3. Embedix compresses them and embeds them as resources.
+4. It injects the loading logic needed to resolve and load them at runtime.
 
-1. **Select the Target Assembly** — Choose the compiled executable or assembly to process.
-2. **Identify Dependencies** — Select the target's dependencies manually or let Embedix detect them automatically.
-3. **Compress Dependencies** — Compress the selected managed assemblies before embedding them.
-4. **Embed Dependencies as Resources** — Store the compressed assemblies as embedded resources in the target assembly.
-5. **Inject Runtime Loading Logic** — Inject the required loading logic into the target assembly so it can resolve and load the embedded dependencies into memory at runtime.
+You get back a single assembly that carries its own dependencies.
 
-The result is a modified assembly that can load and use its embedded managed dependencies at runtime without extracting those DLLs to disk.
+## 🖥️ Use It Your Way
 
-## 🖥️ Available Interfaces
+| Interface | Best for |
+| --- | --- |
+| **GUI** | A visual, desktop workflow (Windows Forms — Windows only) |
+| **CLI** | Scripts, automation, CI/CD — see the [CLI Usage Guide](docs/cli.md) |
+| **Core** | Build your own tooling on top of the embedding engine |
 
-### GUI
-
-The graphical interface provides a desktop workflow for selecting an input assembly, configuring dependency selection and running the embedding process.
-
-It is suitable for developers who prefer working with a graphical application instead of command-line arguments.
-
-### CLI
-
-The command-line interface allows you to embed managed .NET dependencies into compiled assemblies and automate the process through scripts and CI/CD pipelines.
-
-Features include automatic dependency resolution, manual library selection, configurable output directories, optional PDB generation and output overwrite control.
-
-For installation instructions, available options, command examples and usage details, see the [CLI Usage Guide](docs/cli.md).
-
-### Core Library
-
-The Core component contains the reusable assembly-processing functionality used by the application interfaces.
-
-Keeping this logic separate makes it easier to maintain the embedding engine independently of the GUI and CLI and provides a foundation for additional interfaces or integrations.
+> Need macOS or Linux? **[EmbedixStudio](https://github.com/soheil-js/EmbedixStudio)** is a cross-platform desktop GUI for Embedix, built with Flutter.
 
 ## 🌐 Compatibility
 
-Embedix is designed for compiled, managed .NET assemblies.
+Targets .NET Framework, .NET Core and modern .NET — compiled from C#, VB.NET or F#. Actual support depends on your target runtime and dependencies.
 
-### Target Frameworks
+**Not supported:** native (C/C++) dependencies, and Native AOT deployments.
 
-- **.NET Framework**
-- **.NET Core**
-- **Modern .NET**
+## 🔄 Successor to EmbedLibrary
 
-Actual compatibility depends on the target runtime, the injected loading logic and the embedded dependencies. Not every framework version or deployment configuration is necessarily supported.
-
-### Supported Assembly Types
-
-Embedix is intended for managed .NET assemblies compiled from languages such as C#, Visual Basic .NET and F#, subject to runtime and dependency compatibility.
-
-Target architectures such as `Any CPU`, `x86`, `x64` and `ARM64` depend on the target application, its runtime and the compatibility of its dependencies.
-
-### Limitations
-
-- **Managed Assemblies Only:** Native C/C++ DLLs cannot be loaded through the same managed assembly-resolution mechanism. Native dependencies may require separate handling.
-- **Native AOT:** Native AOT deployments are not supported by the dynamic managed-assembly loading approach.
-
-## 🔄 EmbedLibrary Migration
-
-Embedix is the successor to [EmbedLibrary](https://github.com/soheil-js/EmbedLibrary).
-
-The original project focused on embedding managed .NET dependencies into executables. Embedix continues that goal with a more modular architecture, separating the core implementation from its graphical and command-line interfaces.
-
-New development takes place in Embedix.
+Embedix continues [EmbedLibrary](https://github.com/soheil-js/EmbedLibrary)'s goal — embedding dependencies into executables — with a more modular architecture. All new development happens here.
 
 ## 🛠️ Development
 
