@@ -56,6 +56,16 @@ To build or contribute to the project:
 
 Refer to the project files for the exact SDK and target framework requirements.
 
+## 📦 Release Builds
+ 
+The projects have a required build order (`Embedix.Core.Payload` → `Embedix.Core` → `Embedix.CLI`/`Embedix.GUI`), so release builds are produced with the included script instead of building manually:
+ 
+```bash
+python build.py --platform windows   # or mac / linux
+```
+ 
+See the [Build Guide](docs/build.md) for all options.
+
 ## 📌 Credits
 
 - [EmbedLibrary](https://github.com/soheil-js/EmbedLibrary) — Embed your .NET dependencies directly into your executable.
