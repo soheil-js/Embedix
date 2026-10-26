@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build (publish)
+        run: python build.py --platform ${{ matrix.platform == 'macos' && 'mac' || matrix.platform }} --publish
+
+      # --- Windows: zip CLI + GUI, and grab the Embedix.Core .nupkg -----
+      - name: Package artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $version = "${{ github.ref_name }}"
+
+          $cliDir = Get-ChildItem -Path "src/Embedix.CLI/bin/Release" -Recurse -Directory -Filter publish | Select-Object -First 1
+          Compress-Archive -Path "$($cliDir.FullName)/*" -DestinationPath "dist/Embedix.CLI-$version-windows-x64.zip"
+
+          $guiDir = Get-ChildItem -Path "src/Embedix.GUI/bin/Release" -Recurse -Directory -Filter publish | Select-Object -First 1
+          Compress-Archive -Path "$($guiDir.FullName)/*" -DestinationPath "dist/Embedix.GUI-$version-windows-x64.zip"
+
+          # Embedix.Core.csproj has <GeneratePackageOnBuild>true</GeneratePackageOnBuild>,
+          # so `dotnet build` already produced a .nupkg - just copy it into dist/.
+          $nupkg = Get-ChildItem -Path "src/Embedix.Core/bin/Release" -Filter "*.nupkg" | Select-Object -First 1
+          Copy-Item $nupkg.FullName -Destination "dist/$($nupkg.Name)"
+
+      # --- macOS / Linux: zip the CLI publish folder only (no GUI) -----
+      - name: Package artifacts (macOS/Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          version="${{ github.ref_name }}"
+
+          cli_dir=$(find src/Embedix.CLI/bin/Release -type d -name publish | head -n 1)
+          (cd "$cli_dir" && zip -r "$GITHUB_WORKSPACE/dist/Embedix.CLI-$version-${{ matrix.platform }}-x64.zip" .)
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: embedix-${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.zip
+            artifacts/*.nupkg
+          draft: false
+          generate_release_notes: true

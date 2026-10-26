@@ -56,3 +56,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
