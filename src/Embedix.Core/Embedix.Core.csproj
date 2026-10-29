@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/soheil-js</PackageProjectUrl>
     <RepositoryUrl>https://github.com/soheil-js/Embedix</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageTags>costura-fody, ilmerge, embed, references, library, resource, resources, dnlib</PackageTags>
+	<PackageTags>Embedix;costura-fody;ilmerge;embed;assembly-embedding;dependencies;references;dnlib;dotnet;csharp</PackageTags>
 	<Version>1.0.0</Version>
   </PropertyGroup>
 
