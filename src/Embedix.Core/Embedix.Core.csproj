@@ -9,7 +9,7 @@
 	<RootNamespace>Embedix.Core</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<Authors>Soheil Jashnsaz</Authors>
-    <Description>Embed .NET libraries into executables</Description>
+    <Description>A library for embedding .NET assembly dependencies.</Description>
     <Copyright>Copyright (c) 2026 Soheil Jashnsaz.</Copyright>
     <PackageProjectUrl>https://github.com/soheil-js</PackageProjectUrl>
     <RepositoryUrl>https://github.com/soheil-js/Embedix</RepositoryUrl>
@@ -25,12 +25,12 @@
   <ItemGroup>
     <EmbeddedResource Include="..\Embedix.Core.Payload\bin\$(Configuration)\net45\Embedix.Core.Payload.dll">
       <LogicalName>Payload.net45.dll</LogicalName>
-	    </EmbeddedResource>
-	  <EmbeddedResource Include="..\Embedix.Core.Payload\bin\$(Configuration)\net6.0\Embedix.Core.Payload.dll">
-	    <LogicalName>Payload.net6.0.dll</LogicalName>
-	  </EmbeddedResource>
-	  <EmbeddedResource Include="..\Embedix.Core.Payload\bin\$(Configuration)\netstandard2.0\Embedix.Core.Payload.dll">
-        <LogicalName>Payload.netstandard2.0.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Embedix.Core.Payload\bin\$(Configuration)\net6.0\Embedix.Core.Payload.dll">
+      <LogicalName>Payload.net6.0.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Embedix.Core.Payload\bin\$(Configuration)\netstandard2.0\Embedix.Core.Payload.dll">
+      <LogicalName>Payload.netstandard2.0.dll</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

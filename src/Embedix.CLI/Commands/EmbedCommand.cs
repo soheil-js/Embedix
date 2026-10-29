@@ -6,7 +6,7 @@ namespace Embedix.CLI.Commands
 {
     public sealed class EmbedCommand : Command
     {
-        public EmbedCommand(EmbedCommandHandler handler) : base("embed", "Embed .NET assemblies into an executable.")
+        public EmbedCommand(EmbedCommandHandler handler) : base("embed", "Embed dependencies into a compiled .NET assembly.")
         {
             var inputOption = new InputOption();
             var outputOption = new OutputOption();
