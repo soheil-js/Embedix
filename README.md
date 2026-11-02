@@ -1,4 +1,4 @@
-![logo](img/logo.png)
+![logo](img/logo.webp)
 
 **Embed .NET dependencies directly into a compiled assembly — no separate DLLs to ship.**
 
