@@ -1,8 +1,8 @@
-# Embedix
+![logo](img/logo.png)
 
 **Embed .NET dependencies directly into a compiled assembly — no separate DLLs to ship.**
 
-Embedix compresses your managed dependencies, stores them as embedded resources inside the target assembly, and injects the runtime loading logic needed to resolve them in memory. The result: a single, self-contained assembly.
+Embedix compresses your managed dependencies, stores them as embedded resources inside the target assembly, and injects the runtime loading logic needed to resolve them in memory.
 
 ## ✨ Features
 
