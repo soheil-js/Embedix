@@ -2,11 +2,13 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - release
+  workflow_dispatch:
 
+# Default permissions for all jobs (least privilege).
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -17,7 +19,7 @@ jobs:
           - os: windows-latest
             platform: windows
           - os: macos-latest
-            platform: macos
+            platform: mac
           - os: ubuntu-latest
             platform: linux
 
@@ -38,37 +40,97 @@ jobs:
           python-version: "3.x"
 
       - name: Build (publish)
-        run: python build.py --platform ${{ matrix.platform == 'macos' && 'mac' || matrix.platform }} --publish
+        run: python build.py --platform ${{ matrix.platform }} --publish
 
-      # --- Windows: zip CLI + GUI, and grab the Embedix.Core .nupkg -----
+      - name: Read project versions
+        id: versions
+        shell: python
+        run: |
+          import xml.etree.ElementTree as ET
+          import os
+
+          def get_version(path):
+              root = ET.parse(path).getroot()
+              for group in root.findall("PropertyGroup"):
+                  version = group.findtext("Version")
+                  if version:
+                      return version.strip()
+              raise RuntimeError(f"Version not found in {path}")
+
+          core = get_version("src/Embedix.Core/Embedix.Core.csproj")
+          cli = get_version("src/Embedix.CLI/Embedix.CLI.csproj")
+          gui = get_version("src/Embedix.GUI/Embedix.GUI.csproj")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"core={core}\n")
+              output.write(f"cli={cli}\n")
+              output.write(f"gui={gui}\n")
+
       - name: Package artifacts (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          CLI_VERSION: ${{ steps.versions.outputs.cli }}
+          GUI_VERSION: ${{ steps.versions.outputs.gui }}
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          $version = "${{ github.ref_name }}"
 
-          $cliDir = Get-ChildItem -Path "src/Embedix.CLI/bin/Release" -Recurse -Directory -Filter publish | Select-Object -First 1
-          Compress-Archive -Path "$($cliDir.FullName)/*" -DestinationPath "dist/Embedix.CLI-$version-windows-x64.zip"
+          $cliDir = Get-ChildItem `
+            -Path "src/Embedix.CLI/bin/Release" `
+            -Recurse -Directory -Filter publish |
+            Select-Object -First 1
 
-          $guiDir = Get-ChildItem -Path "src/Embedix.GUI/bin/Release" -Recurse -Directory -Filter publish | Select-Object -First 1
-          Compress-Archive -Path "$($guiDir.FullName)/*" -DestinationPath "dist/Embedix.GUI-$version-windows-x64.zip"
+          if (-not $cliDir) {
+            throw "CLI publish directory not found."
+          }
 
-          # Embedix.Core.csproj has <GeneratePackageOnBuild>true</GeneratePackageOnBuild>,
-          # so `dotnet build` already produced a .nupkg - just copy it into dist/.
-          $nupkg = Get-ChildItem -Path "src/Embedix.Core/bin/Release" -Filter "*.nupkg" | Select-Object -First 1
-          Copy-Item $nupkg.FullName -Destination "dist/$($nupkg.Name)"
+          Compress-Archive `
+            -Path "$($cliDir.FullName)/*" `
+            -DestinationPath "dist/Embedix.CLI-v$env:CLI_VERSION-windows-x64.zip"
 
-      # --- macOS / Linux: zip the CLI publish folder only (no GUI) -----
+          $guiDir = Get-ChildItem `
+            -Path "src/Embedix.GUI/bin/Release" `
+            -Recurse -Directory -Filter publish |
+            Select-Object -First 1
+
+          if (-not $guiDir) {
+            throw "GUI publish directory not found."
+          }
+
+          Compress-Archive `
+            -Path "$($guiDir.FullName)/*" `
+            -DestinationPath "dist/Embedix.GUI-v$env:GUI_VERSION-windows-x64.zip"
+
+          $nupkg = Get-ChildItem `
+            -Path "src/Embedix.Core/bin/Release" `
+            -Recurse -Filter "*.nupkg" |
+            Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
+            Select-Object -First 1
+
+          if (-not $nupkg) {
+            throw "Embedix.Core NuGet package not found."
+          }
+
+          Copy-Item $nupkg.FullName -Destination "dist/"
+
       - name: Package artifacts (macOS/Linux)
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          CLI_VERSION: ${{ steps.versions.outputs.cli }}
         run: |
           mkdir -p dist
-          version="${{ github.ref_name }}"
 
-          cli_dir=$(find src/Embedix.CLI/bin/Release -type d -name publish | head -n 1)
-          (cd "$cli_dir" && zip -r "$GITHUB_WORKSPACE/dist/Embedix.CLI-$version-${{ matrix.platform }}-x64.zip" .)
+          cli_dir=$(find src/Embedix.CLI/bin/Release \
+            -type d -name publish | head -n 1)
+
+          if [ -z "$cli_dir" ]; then
+            echo "CLI publish directory not found."
+            exit 1
+          fi
+
+          (cd "$cli_dir" && zip -r \
+            "$GITHUB_WORKSPACE/dist/Embedix.CLI-v${CLI_VERSION}-${{ matrix.platform }}-x64.zip" .)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -81,18 +143,107 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write   # create the GitHub Release
+      id-token: write   # required for NuGet Trusted Publishing (OIDC)
+
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
 
+      - name: Read project versions
+        id: versions
+        shell: python
+        run: |
+          import re
+          import xml.etree.ElementTree as ET
+          import os
+
+          def get_version(path):
+              root = ET.parse(path).getroot()
+              for group in root.findall("PropertyGroup"):
+                  version = group.findtext("Version")
+                  if version:
+                      return version.strip()
+              raise RuntimeError(f"Version not found in {path}")
+
+          core = get_version("src/Embedix.Core/Embedix.Core.csproj")
+          cli = get_version("src/Embedix.CLI/Embedix.CLI.csproj")
+          gui = get_version("src/Embedix.GUI/Embedix.GUI.csproj")
+
+          def parse(version):
+              match = re.match(r"(\d+)(?:\.(\d+))?(?:\.(\d+))?", version)
+              if not match:
+                  raise RuntimeError(f"Invalid version: {version}")
+              return [int(part) if part else 0 for part in match.groups()]
+
+          # Release version = component-wise sum of all project versions
+          # (1.1.3 + 2.3.5 + 1.0.2 -> 4.4.10)
+          total = [sum(parts) for parts in zip(parse(core), parse(cli), parse(gui))]
+          release = ".".join(str(n) for n in total)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"core={core}\n")
+              output.write(f"cli={cli}\n")
+              output.write(f"gui={gui}\n")
+              output.write(f"release={release}\n")
+
+      # The temporary API key is valid for 1 hour, so log in right before pushing.
+      - name: NuGet login (OIDC -> temporary API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}   # nuget.org profile name, NOT email
+
+      - name: Publish Core to NuGet
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          CORE_VERSION: ${{ steps.versions.outputs.core }}
+        run: |
+          package="artifacts/Embedix.Core.${CORE_VERSION}.nupkg"
+
+          if [ ! -f "$package" ]; then
+            echo "NuGet package not found: $package"
+            ls -la artifacts
+            exit 1
+          fi
+
+          dotnet nuget push "$package" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.versions.outputs.release }}
+          # Without this, the tag would be created on the default branch (main)
+          # instead of the commit that was actually built.
+          target_commitish: ${{ github.sha }}
+          name: Embedix v${{ steps.versions.outputs.release }}
+          body: |
+            ## Versions
+
+            - Embedix.Core v${{ steps.versions.outputs.core }}
+            - Embedix.CLI v${{ steps.versions.outputs.cli }}
+            - Embedix.GUI v${{ steps.versions.outputs.gui }}
+
+            This release contains the latest builds of all Embedix projects.
+
           files: |
             artifacts/*.zip
             artifacts/*.nupkg
           draft: false
+          prerelease: false
           generate_release_notes: true
