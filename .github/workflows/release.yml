@@ -20,22 +20,22 @@ jobs:
             platform: windows
           - os: macos-latest
             platform: mac
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             platform: linux
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -133,7 +133,7 @@ jobs:
             "$GITHUB_WORKSPACE/dist/Embedix.CLI-v${CLI_VERSION}-${{ matrix.platform }}-x64.zip" .)
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: embedix-${{ matrix.platform }}
           path: dist/*
@@ -141,7 +141,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: release
 
     permissions:
@@ -150,15 +150,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
@@ -226,7 +226,7 @@ jobs:
             --skip-duplicate
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.versions.outputs.release }}
           # Without this, the tag would be created on the default branch (main)
