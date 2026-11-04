@@ -142,6 +142,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    environment: release
 
     permissions:
       contents: write   # create the GitHub Release
