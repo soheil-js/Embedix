@@ -49,6 +49,11 @@ namespace Embedix.Core.dnlib.Injection
         /// <summary>The dnlib importer used to bring foreign references into <see cref="TargetModule"/>.</summary>
         public Importer Importer { get; }
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="InjectMapper"/> class.
+        /// </summary>
+        /// <param name="target">The module definitions are injected into.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="target"/> is null.</exception>
         public InjectMapper(ModuleDef target)
         {
             TargetModule = target ?? throw new ArgumentNullException(nameof(target));
@@ -57,6 +62,11 @@ namespace Embedix.Core.dnlib.Injection
 
         #region ImportMapper overrides
 
+        /// <summary>
+        ///     Redirects a type reference to its injected copy, if one exists.
+        /// </summary>
+        /// <param name="source">The source type reference.</param>
+        /// <returns>The injected type, or <see langword="null"/> to let the importer handle it.</returns>
         public override ITypeDefOrRef Map(ITypeDefOrRef source)
         {
             if (source == null) return null;
@@ -67,6 +77,11 @@ namespace Embedix.Core.dnlib.Injection
             return ResolveByToken(source.MDToken) as ITypeDefOrRef;
         }
 
+        /// <summary>
+        ///     Redirects a method definition to its injected copy, if one exists.
+        /// </summary>
+        /// <param name="source">The source method.</param>
+        /// <returns>The injected method, or <see langword="null"/> if none exists.</returns>
         public override IMethod Map(MethodDef source)
         {
             if (source == null) return null;
@@ -80,6 +95,11 @@ namespace Embedix.Core.dnlib.Injection
             return ResolveByToken(source.MDToken) as IMethod;
         }
 
+        /// <summary>
+        ///     Redirects a field definition to its injected copy, if one exists.
+        /// </summary>
+        /// <param name="source">The source field.</param>
+        /// <returns>The injected field, or <see langword="null"/> if none exists.</returns>
         public override IField Map(FieldDef source)
         {
             if (source == null) return null;
@@ -90,6 +110,11 @@ namespace Embedix.Core.dnlib.Injection
             return ResolveByToken(source.MDToken) as IField;
         }
 
+        /// <summary>
+        ///     Redirects a member reference to its injected copy, if one exists.
+        /// </summary>
+        /// <param name="source">The source member reference.</param>
+        /// <returns>The injected member reference, or <see langword="null"/> if none exists.</returns>
         public override MemberRef Map(MemberRef source)
         {
             if (source == null) return null;
@@ -100,6 +125,11 @@ namespace Embedix.Core.dnlib.Injection
             return ResolveByToken(source.MDToken) as MemberRef;
         }
 
+        /// <summary>
+        ///     Redirects a runtime type to its injected copy, if one exists.
+        /// </summary>
+        /// <param name="source">The runtime type.</param>
+        /// <returns>The injected type, or <see langword="null"/> if none exists.</returns>
         public override ITypeDefOrRef Map(Type source)
         {
             if (source == null) return null;
@@ -118,39 +148,100 @@ namespace Embedix.Core.dnlib.Injection
 
         #region Import helpers (used while cloning/copying injected members)
 
+        /// <summary>
+        ///     Imports a type reference into the target module, with caching.
+        /// </summary>
+        /// <param name="type">The type to import.</param>
+        /// <returns>The imported type.</returns>
         public ITypeDefOrRef ImportType(ITypeDefOrRef type) =>
             _typeRefCache.GetOrAdd(type, t => Importer.Import(t));
 
+        /// <summary>
+        ///     Imports a member reference, method or field into the target module, with caching.
+        /// </summary>
+        /// <param name="member">The member to import.</param>
+        /// <returns>The imported member.</returns>
+        /// <exception cref="NotSupportedException">The member is not a <see cref="MemberRef"/>, <see cref="MethodDef"/> or <see cref="FieldDef"/>.</exception>
         public IMemberRef ImportMember(IMemberRef member) =>
             _memberRefCache.GetOrAdd(member, ImportMemberCore);
 
+        /// <summary>
+        ///     Imports a method into the target module, with caching.
+        /// </summary>
+        /// <param name="method">The method to import.</param>
+        /// <returns>The imported method.</returns>
         public IMethodDefOrRef ImportMethod(IMethodDefOrRef method) =>
             _methodRefCache.GetOrAdd(method, m => Importer.Import(m) as IMethodDefOrRef);
 
+        /// <summary>
+        ///     Imports a type signature into the target module, with caching.
+        /// </summary>
+        /// <param name="sig">The signature to import.</param>
+        /// <returns>The imported signature.</returns>
         public TypeSig ImportTypeSig(TypeSig sig) =>
             _typeSigCache.GetOrAdd(sig, Importer.Import);
 
+        /// <summary>
+        ///     Imports a method signature into the target module, with caching.
+        /// </summary>
+        /// <param name="sig">The signature to import.</param>
+        /// <returns>The imported signature.</returns>
         public MethodSig ImportMethodSig(MethodSig sig) =>
             _methodSigCache.GetOrAdd(sig, Importer.Import);
 
+        /// <summary>
+        ///     Imports a property signature into the target module, with caching.
+        /// </summary>
+        /// <param name="sig">The signature to import.</param>
+        /// <returns>The imported signature.</returns>
         public PropertySig ImportPropertySig(PropertySig sig) =>
             _propertySigCache.GetOrAdd(sig, Importer.Import);
 
+        /// <summary>
+        ///     Imports a field signature into the target module, with caching.
+        /// </summary>
+        /// <param name="sig">The signature to import.</param>
+        /// <returns>The imported signature.</returns>
         public FieldSig ImportFieldSig(FieldSig sig) =>
             _fieldSigCache.GetOrAdd(sig, Importer.Import);
 
+        /// <summary>
+        ///     Imports a calling convention signature into the target module, with caching.
+        /// </summary>
+        /// <param name="sig">The signature to import.</param>
+        /// <returns>The imported signature.</returns>
         public CallingConventionSig ImportCallingConventionSig(CallingConventionSig sig) =>
             _callingConventionSigCache.GetOrAdd(sig, Importer.Import);
 
+        /// <summary>
+        ///     Imports a custom attribute constructor into the target module, with caching.
+        /// </summary>
+        /// <param name="attributeType">The attribute constructor to import.</param>
+        /// <returns>The imported constructor.</returns>
         public ICustomAttributeType ImportCustomAttributeType(ICustomAttributeType attributeType) =>
             _customAttributeTypeCache.GetOrAdd(attributeType, t => (ICustomAttributeType)Importer.Import(t));
 
+        /// <summary>
+        ///     Imports a type (<see cref="IType"/>, e.g. a type reference or a type spec) into the target module, with caching.
+        /// </summary>
+        /// <param name="type">The type to import.</param>
+        /// <returns>The imported type.</returns>
         public IType ImportType(IType type) =>
             _itypeCache.GetOrAdd(type, Importer.Import);
 
+        /// <summary>
+        ///     Imports a method reference into the target module, with caching.
+        /// </summary>
+        /// <param name="method">The method to import.</param>
+        /// <returns>The imported method.</returns>
         public IMethod ImportMethod(IMethod method) =>
             _methodCache.GetOrAdd(method, Importer.Import);
 
+        /// <summary>
+        ///     Imports a field reference into the target module, with caching.
+        /// </summary>
+        /// <param name="field">The field to import.</param>
+        /// <returns>The imported field.</returns>
         public IField ImportField(IField field) =>
             _fieldCache.GetOrAdd(field, Importer.Import);
 

@@ -14,6 +14,13 @@ namespace Embedix.Core.dnlib.Injection
         private readonly MemberCopier _copier;
         private readonly HashSet<TypeDef> _processedTypes;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="TypeInitializer"/> class.
+        /// </summary>
+        /// <param name="mapper">The mapper that records source-to-target definitions.</param>
+        /// <param name="cloner">Creates the skeleton definitions.</param>
+        /// <param name="copier">Fills in the skeleton definitions.</param>
+        /// <param name="processedTypes">The set of source types already handled; shared with the owning injector.</param>
         public TypeInitializer(InjectMapper mapper, MemberCloner cloner, MemberCopier copier, HashSet<TypeDef> processedTypes)
         {
             _mapper = mapper;
@@ -48,6 +55,8 @@ namespace Embedix.Core.dnlib.Injection
         /// member it could reference within the tree already has a target skeleton to
         /// resolve to.
         /// </remarks>
+        /// <param name="source">The type whose tree is cloned.</param>
+        /// <returns>The skeleton of <paramref name="source"/>; the existing one if it was already built.</returns>
         public TypeDef BuildSkeletonTree(TypeDef source)
         {
             if (_mapper.DnlibDefMaps.TryGetValue(source, out var existing))
@@ -102,6 +111,7 @@ namespace Embedix.Core.dnlib.Injection
         /// call this after <see cref="BuildSkeletonTree"/> has already run for every type
         /// that could be referenced from within this tree (see the remarks above).
         /// </summary>
+        /// <param name="source">The type whose tree is filled in.</param>
         public void CopyTree(TypeDef source)
         {
             _copier.CopyAll(source, copyTypeAttributes: true);

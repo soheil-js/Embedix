@@ -8,8 +8,22 @@ using System.Linq;
 
 namespace Embedix.Core
 {
+    /// <summary>
+    ///     Embeds library files into a target assembly as compressed resources and merges the
+    ///     runtime payload (an assembly resolver) that loads them on demand.
+    /// </summary>
     public class Embedder
     {
+        /// <summary>
+        ///     Embeds the given libraries into the target assembly and wires up the runtime resolver.
+        /// </summary>
+        /// <param name="context">The context of the assembly that receives the embedded libraries.</param>
+        /// <param name="librarys">Paths of the library files to embed. Each is deflate-compressed and stored as a resource named <c>Embedded.&lt;file name&gt;</c>.</param>
+        /// <remarks>
+        ///     After the resources are added, the payload module matching the target's core library is
+        ///     loaded, its <c>AssemblyResolver</c> type is merged into the target, and a call to its
+        ///     <c>Resolve</c> method is inserted at the start of the module static constructor. If the merge does not produce a copy (for example because the type was already injected), no call is inserted.
+        /// </remarks>
         public static void Execute(AssemblyContext context, string[] librarys)
         {
             //Embedding libraries into resources for dynamic usage
@@ -42,6 +56,11 @@ namespace Embedix.Core
             }
         }
 
+        /// <summary>
+        ///     Chooses the embedded payload assembly that matches the target module's core library.
+        /// </summary>
+        /// <param name="targetModule">The module being processed.</param>
+        /// <returns>The payload resource name: <c>net45</c> when the core library is <c>mscorlib</c> (or a name starting with it), <c>netstandard2.0</c> for <c>netstandard</c>, and <c>net6.0</c> for <c>System.Private.CoreLib</c>, <c>System.Runtime</c>, a missing name or any unrecognized core library.</returns>
         private static string SelectPayloadResource(ModuleDef targetModule)
         {
             var corLibAssemblyRef = targetModule.CorLibTypes.AssemblyRef;
@@ -65,6 +84,12 @@ namespace Embedix.Core
             return "Payload.net6.0.dll";
         }
 
+        /// <summary>
+        ///     Loads a payload assembly from this assembly's manifest resources.
+        /// </summary>
+        /// <param name="resourceName">The name of the embedded payload resource.</param>
+        /// <returns>The loaded payload module.</returns>
+        /// <exception cref="InvalidOperationException">The resource does not exist.</exception>
         private static ModuleDefMD LoadPayloadModule(string resourceName)
         {
             using (var stream = typeof(Embedder).Assembly.GetManifestResourceStream(resourceName))
@@ -79,6 +104,11 @@ namespace Embedix.Core
         }
 
         //https://stackoverflow.com/questions/10599596/compress-and-decompress-a-stream-with-compression-deflatestream
+        /// <summary>
+        ///     Compresses data using the Deflate algorithm.
+        /// </summary>
+        /// <param name="data">The bytes to compress.</param>
+        /// <returns>The compressed bytes, or <see langword="null"/> if compression fails.</returns>
         private static byte[] Compress(byte[] data)
         {
             try

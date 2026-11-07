@@ -14,11 +14,20 @@ namespace Embedix.Core.dnlib.Injection
     {
         private readonly InjectMapper _mapper;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="MethodBodyCopier"/> class.
+        /// </summary>
+        /// <param name="mapper">The mapper that imports operand references.</param>
         public MethodBodyCopier(InjectMapper mapper)
         {
             _mapper = mapper;
         }
 
+        /// <summary>
+        ///     Copies the body of a method, if it has one.
+        /// </summary>
+        /// <param name="source">The method providing the body.</param>
+        /// <param name="target">The cloned method that receives the body.</param>
         public void Copy(MethodDef source, MethodDef target)
         {
             if (!source.HasBody)

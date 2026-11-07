@@ -26,6 +26,10 @@ namespace Embedix.Core.dnlib.Injection
         private readonly TypeInitializer _initializer;
         private readonly ReferenceFixer _referenceFixer;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="Injector"/> class.
+        /// </summary>
+        /// <param name="target">The module that receives injected types.</param>
         public Injector(ModuleDef target)
         {
             _mapper = new InjectMapper(target);
@@ -53,6 +57,7 @@ namespace Embedix.Core.dnlib.Injection
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         /// <exception cref="InjectionException">Injection failed; see <see cref="Exception.InnerException"/>.</exception>
+        /// <param name="source">The type to inject.</param>
         public void Inject(TypeDef source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -89,6 +94,7 @@ namespace Embedix.Core.dnlib.Injection
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="sources"/> is null.</exception>
         /// <exception cref="InjectionException">Injection failed; see <see cref="Exception.InnerException"/>.</exception>
+        /// <param name="sources">The top-level types to inject together; null entries and already injected types are skipped.</param>
         public void Inject(IEnumerable<TypeDef> sources)
         {
             if (sources == null) throw new ArgumentNullException(nameof(sources));
@@ -138,6 +144,10 @@ namespace Embedix.Core.dnlib.Injection
         /// tree are still resolved correctly thanks to the two-phase build. Prefer
         /// <see cref="Inject(TypeDef)"/> unless you have a specific reason to avoid exceptions.
         /// </remarks>
+        /// <param name="source">The type to inject.</param>
+        /// <param name="target">The injected copy on success; otherwise <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if the type was injected; <see langword="false"/> if it was already injected or injection failed.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         public bool TryInject(TypeDef source, out TypeDef target)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));

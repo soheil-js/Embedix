@@ -21,6 +21,9 @@ namespace Embedix.Core.dnlib.Injection.Caching
         /// <paramref name="factory"/>, stores it, and returns it. Returns null (without
         /// caching) when <paramref name="key"/> is null, mirroring the original null checks.
         /// </summary>
+        /// <param name="key">The source object to look up.</param>
+        /// <param name="factory">Computes the value when <paramref name="key"/> is not cached yet.</param>
+        /// <returns>The cached or newly computed value, or <see langword="null"/> when <paramref name="key"/> is <see langword="null"/>.</returns>
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> factory)
         {
             if (key == null) return null;
@@ -33,6 +36,12 @@ namespace Embedix.Core.dnlib.Injection.Caching
             return value;
         }
 
+        /// <summary>
+        ///     Tries to get a previously cached value.
+        /// </summary>
+        /// <param name="key">The source object.</param>
+        /// <param name="value">The cached value, or <see langword="null"/> if not found.</param>
+        /// <returns><see langword="true"/> if a value is cached for <paramref name="key"/>; otherwise <see langword="false"/>.</returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
             if (key == null)
@@ -44,6 +53,9 @@ namespace Embedix.Core.dnlib.Injection.Caching
             return _cache.TryGetValue(key, out value);
         }
 
+        /// <summary>
+        ///     Removes all cached entries.
+        /// </summary>
         public void Clear() => _cache.Clear();
     }
 }

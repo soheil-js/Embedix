@@ -16,6 +16,10 @@ namespace Embedix.Core.dnlib.Injection
         private readonly MethodBodyCopier _bodyCopier;
         private readonly AttributeCopier _attributeCopier;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="MemberCopier"/> class.
+        /// </summary>
+        /// <param name="mapper">The mapper that resolves and imports references.</param>
         public MemberCopier(InjectMapper mapper)
         {
             _mapper = mapper;
@@ -29,6 +33,8 @@ namespace Embedix.Core.dnlib.Injection
         /// counterpart. Deliberately does NOT recurse into nested types - see
         /// <see cref="TypeInitializer.CopyTree"/>, which calls this once per type.
         /// </summary>
+        /// <param name="source">The source type whose members are copied.</param>
+        /// <param name="copyTypeAttributes">Whether the type's own base type, interfaces, attributes and generic parameters are copied too.</param>
         public void CopyAll(TypeDef source, bool copyTypeAttributes)
         {
             if (copyTypeAttributes)
@@ -104,6 +110,8 @@ namespace Embedix.Core.dnlib.Injection
         /// signature plus this list, so without it parameters keep their type but lose their
         /// name and everything else.
         /// </summary>
+        /// <param name="source">The source method.</param>
+        /// <param name="target">The cloned method that receives the parameter definitions.</param>
         private void CopyParamDefs(MethodDef source, MethodDef target)
         {
             foreach (ParamDef sourceParam in source.ParamDefs)
@@ -228,6 +236,8 @@ namespace Embedix.Core.dnlib.Injection
         /// after phase 1 has cloned every method on the type), so looking it up directly
         /// side-steps naming entirely and works for every case above.
         /// </remarks>
+        /// <param name="source">The source accessor method.</param>
+        /// <returns>The cloned method, or <see langword="null"/> if it was not cloned.</returns>
         private MethodDef ResolveCopiedMethod(MethodDef source) =>
             _mapper.DnlibDefMaps.TryGetValue(source, out var target) ? (MethodDef)target : null;
 
@@ -244,6 +254,8 @@ namespace Embedix.Core.dnlib.Injection
         /// already-cloned target counterpart by index (both lists are built in the same
         /// order) and creates a matching, properly-imported constraint for each one.
         /// </remarks>
+        /// <param name="sourceParams">The source generic parameters.</param>
+        /// <param name="targetParams">The cloned generic parameters, in the same order.</param>
         private void CopyGenericParameterDetails(IList<GenericParam> sourceParams, IList<GenericParam> targetParams)
         {
             for (int i = 0; i < sourceParams.Count; i++)

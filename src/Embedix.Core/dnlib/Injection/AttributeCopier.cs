@@ -18,13 +18,25 @@ namespace Embedix.Core.dnlib.Injection
     /// </remarks>
     internal sealed class AttributeCopier
     {
+        /// <summary>
+        ///     Mapper used to import types and signatures into the target module.
+        /// </summary>
         private readonly InjectMapper _mapper;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="AttributeCopier"/> class.
+        /// </summary>
+        /// <param name="mapper">The mapper that imports references into the target module.</param>
         public AttributeCopier(InjectMapper mapper)
         {
             _mapper = mapper;
         }
 
+        /// <summary>
+        ///     Copies a custom attribute, including constructor and named arguments.
+        /// </summary>
+        /// <param name="source">The attribute to copy.</param>
+        /// <returns>A new attribute whose references point into the target module.</returns>
         public CustomAttribute CopyCustomAttribute(CustomAttribute source)
         {
             var target = new CustomAttribute(_mapper.ImportCustomAttributeType(source.Constructor));
@@ -38,6 +50,11 @@ namespace Embedix.Core.dnlib.Injection
             return target;
         }
 
+        /// <summary>
+        ///     Copies a declarative security attribute set.
+        /// </summary>
+        /// <param name="source">The declaration to copy.</param>
+        /// <returns>A new declaration with imported attribute types and named arguments.</returns>
         public DeclSecurity CopyDeclSecurity(DeclSecurity source)
         {
             var target = new DeclSecurityUser { Action = source.Action };

@@ -19,6 +19,10 @@ namespace Embedix.Core.dnlib.Injection
             _mapper = mapper;
         }
 
+        /// <summary>
+        ///     Re-imports instruction operands and method overrides of a type and its nested types.
+        /// </summary>
+        /// <param name="target">The injected type to process.</param>
         public void FixReferences(TypeDef target)
         {
             foreach (var method in target.Methods)
@@ -38,6 +42,7 @@ namespace Embedix.Core.dnlib.Injection
         /// references something outside the type's own tree that only became available
         /// later (e.g. a type injected in a previous, separate call).
         /// </summary>
+        /// <param name="target">The injected type to process, including its nested types and methods.</param>
         public void FixGenericParameters(TypeDef target)
         {
             foreach (var method in target.Methods)
