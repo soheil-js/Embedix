@@ -1,0 +1,75 @@
+
+name: Documentation
+
+on:
+  push:
+    branches:
+      - release
+
+  workflow_dispatch:
+
+# Default permissions for all jobs (least privilege).
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Documentation
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore Local Tools
+        run: dotnet tool restore
+
+      # Build all Payload target frameworks.
+      # Embedix.Core requires these assemblies as embedded resources.
+      - name: Build Core Payload
+        run: dotnet build src/Embedix.Core.Payload/Embedix.Core.Payload.csproj --configuration Release
+
+      # Build Core for the framework used by DocFX.
+      - name: Build Core
+        run: dotnet build src/Embedix.Core/Embedix.Core.csproj --configuration Release --framework net6.0
+
+      - name: Generate API Metadata
+        run: dotnet tool run docfx metadata docs/docfx.json
+
+      - name: Build Documentation
+        run: dotnet tool run docfx build docs/docfx.json
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Documentation
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/_site
+
+  deploy:
+    name: Deploy Documentation
+    runs-on: ubuntu-24.04
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

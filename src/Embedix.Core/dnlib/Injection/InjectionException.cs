@@ -7,7 +7,7 @@ namespace Embedix.Core.dnlib.Injection
     /// Thrown by <see cref="Injector.Inject"/> when a <see cref="TypeDef"/> fails to be
     /// injected into the target module. Replaces the plain <see cref="Exception"/> wrapper
     /// used by the original implementation so callers can catch injection failures
-    /// specifically and still inspect <see cref="InnerException"/> for the root cause.
+    /// specifically and still inspect <see cref="Exception.InnerException"/> for the root cause.
     /// </summary>
     [Serializable]
     public class InjectionException : Exception

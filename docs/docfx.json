@@ -1,0 +1,49 @@
+
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "Embedix.Core.dll"
+          ],
+          "src": "../src/Embedix.Core/bin/Release/net6.0"
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml"
+        ]
+      },
+      {
+        "files": [
+          "*.md",
+          "toc.yml",
+          "articles/**.md",
+          "articles/toc.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "media/**"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "template": [
+      "default"
+    ],
+    "globalMetadata": {
+      "_appTitle": "Embedix Documentation",
+      "_appName": "Embedix",
+      "_enableSearch": true
+    }
+  }
+}

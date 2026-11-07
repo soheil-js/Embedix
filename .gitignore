@@ -61,3 +61,7 @@ nunit-*.xml
 __pycache__/
 *.pyc
 *.pyo
+
+# DocFX generated files
+docs/_site/
+docs/api/
