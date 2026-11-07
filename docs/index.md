@@ -34,6 +34,7 @@ dotnet add package Embedix.Core
 - [**API Reference**](xref:Embedix.Core) — Explore classes, methods, and namespaces.
 - [**CLI Usage Guide**](articles/cli.md) — Learn how to use Embedix from the command line.
 - [**Build Guide**](articles/build.md) — Learn how to build Embedix for Windows, macOS, and Linux.
+- [**Documentation Guide**](articles/documentation.md) — Learn how to build and preview the documentation locally.
 
 ## Links
 
