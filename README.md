@@ -27,7 +27,7 @@ You get back a single assembly that carries its own dependencies.
 | Interface | Best for |
 | --- | --- |
 | **GUI** | A visual, desktop workflow (Windows Forms — Windows only) |
-| **CLI** | Scripts, automation, CI/CD — see the [CLI Usage Guide](docs/cli.md) |
+| **CLI** | Scripts, automation, CI/CD — see the [CLI Usage Guide](https://soheil-js.github.io/Embedix/cli.html) |
 | **Core** | Build your own tooling on top of the embedding engine |
 
 > Need macOS or Linux? **[EmbedixStudio](https://github.com/soheil-js/EmbedixStudio)** is a cross-platform desktop GUI for Embedix, built with Flutter.
@@ -64,7 +64,7 @@ The projects have a required build order (`Embedix.Core.Payload` → `Embedix.Co
 python build.py --platform windows   # or mac / linux
 ```
  
-See the [Build Guide](docs/build.md) for all options.
+See the [Build Guide](https://soheil-js.github.io/Embedix/build.html) for all options.
 
 ## 📌 Credits
 
