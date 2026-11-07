@@ -4,7 +4,7 @@ using System;
 namespace Embedix.Core.dnlib.Injection
 {
     /// <summary>
-    /// Thrown by <see cref="Injector.Inject"/> when a <see cref="TypeDef"/> fails to be
+    /// Thrown by <see cref="Injector.Inject(TypeDef)"/> when a <see cref="TypeDef"/> fails to be
     /// injected into the target module. Replaces the plain <see cref="Exception"/> wrapper
     /// used by the original implementation so callers can catch injection failures
     /// specifically and still inspect <see cref="Exception.InnerException"/> for the root cause.
