@@ -113,8 +113,17 @@ namespace Embedix.CLI.Services
                         {
                             AssemblyContext context = assembly.GetAssemblyContext();
 
-                            _log.Information("Embedding {LibraryCount} library/libraries.", libraries.Length);
-                            Embedder.Execute(context, libraries);
+                            _log.Information("Automatically resolved {LibraryCount} dependencies.", libraries.Length);
+                            var result = Embedder.ExecuteWithResult(context, libraries);
+                            foreach (string library in result.EmbeddedLibraries)
+                            {
+                                _log.Information("Successfully embedded library: {LibraryName}", library);
+                            }
+                            _log.Information("Embedding completed successfully.");
+                            _log.Information("Original size: {OriginalSize:N0} bytes", result.OriginalSize);
+                            _log.Information("Compressed size: {CompressedSize:N0} bytes", result.CompressedSize);
+                            _log.Information("Saved size: {SavedSize:N0} bytes", result.SavedSize);
+                            _log.Information("Compression ratio: {CompressionRatio:F2}%", result.CompressionRatio);
                             _log.Debug("Assembly embedding operation completed in memory.");
 
                             cancellationToken.ThrowIfCancellationRequested();

@@ -2,6 +2,7 @@
 using dnlib.DotNet.Emit;
 using Embedix.Core.dnlib.Loading;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -28,13 +29,40 @@ namespace Embedix.Core
         /// </remarks>
         public static void Execute(AssemblyContext context, string[] librarys, string typeName = "AssemblyResolver", string @namespace = "Embedix")
         {
+            ExecuteWithResult(context, librarys, typeName, @namespace);
+        }
+
+        /// <summary>
+        ///     Embeds the given libraries into the target assembly and wires up the runtime resolver.
+        /// </summary>
+        /// <param name="context">The context of the assembly that receives the embedded libraries.</param>
+        /// <param name="librarys">Paths of the library files to embed. Each is deflate-compressed and stored as a resource named <c>Embedded.&lt;file name&gt;</c>.</param>
+        /// <param name="typeName">The name of the type to merge.</param>
+        /// <param name="namespace">The namespace of the type to merge.</param>
+        /// <returns>
+        ///     An <see cref="EmbedResult"/> containing the embedded libraries, original and compressed sizes,
+        ///     and any warnings generated during execution.
+        /// </returns>
+        public static EmbedResult ExecuteWithResult(AssemblyContext context, string[] librarys, string typeName = "AssemblyResolver", string @namespace = "Embedix")
+        {
+            var embeddedLibraries = new List<string>();
+            var warnings = new List<string>();
+            long originalSize = 0;
+            long compressedSize = 0;
+
+
             //Embedding libraries into resources for dynamic usage
             foreach (var path in librarys)
             {
                 string name = Path.GetFileName(path);
                 byte[] file = File.ReadAllBytes(path);
                 byte[] zip = Compress(file);
+
                 context.Resources.Add($"Embedded.{name}", zip);
+
+                embeddedLibraries.Add(name);
+                originalSize += file.Length;
+                compressedSize += zip.Length;
             }
 
             ModuleDefMD payloadModule = null;
@@ -43,19 +71,23 @@ namespace Embedix.Core
                 string resourceName = SelectPayloadResource(context.Module);
                 payloadModule = LoadPayloadModule(resourceName);
 
-                var typeDef = payloadModule.Find("Embedix.Core.Payload.AssemblyResolver", false);
+                var typeDef = payloadModule.Find("Embedix.Core.Payload.AssemblyResolver", false)
+                    ?? throw new InvalidOperationException("Could not find the AssemblyResolver payload type.");
 
-                var copyTypeDef = context.Merge(typeDef, typeName, @namespace) ?? throw new InvalidOperationException("Failed to inject the AssemblyResolver payload.");
-                if (copyTypeDef != null)
-                {
-                    var method = copyTypeDef.Methods.Single(m => m.Name == "Resolve");
-                    context.GlobalTypeStaticConstructor.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Call, method));
-                }
+                var copyTypeDef = context.Merge(typeDef, typeName, @namespace)
+                    ?? throw new InvalidOperationException("Failed to inject the AssemblyResolver payload.");
+
+                var method = copyTypeDef.Methods.SingleOrDefault(m => m.Name == "Resolve")
+                    ?? throw new InvalidOperationException("The AssemblyResolver payload does not contain a Resolve method.");
+
+                context.GlobalTypeStaticConstructor.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Call, method));
             }
             finally
             {
                 payloadModule?.Dispose();
             }
+
+            return new EmbedResult(embeddedLibraries, originalSize, compressedSize, warnings);
         }
 
         /// <summary>
