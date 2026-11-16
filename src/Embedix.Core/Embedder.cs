@@ -43,7 +43,7 @@ namespace Embedix.Core
 
                 var typeDef = payloadModule.Find("Embedix.Core.Payload.AssemblyResolver", false);
 
-                var copyTypeDef = context.Merge(typeDef, "AssemblyResolver", "Embedix");
+                var copyTypeDef = context.Merge(typeDef, "AssemblyResolver", "Embedix") ?? throw new InvalidOperationException("Failed to inject the AssemblyResolver payload.");
                 if (copyTypeDef != null)
                 {
                     var method = copyTypeDef.Methods.Single(m => m.Name == "Resolve");
