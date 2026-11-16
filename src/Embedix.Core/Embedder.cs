@@ -142,23 +142,20 @@ namespace Embedix.Core
         ///     Compresses data using the Deflate algorithm.
         /// </summary>
         /// <param name="data">The bytes to compress.</param>
-        /// <returns>The compressed bytes, or <see langword="null"/> if compression fails.</returns>
+        /// <returns>The compressed bytes.</returns>
         private static byte[] Compress(byte[] data)
         {
-            try
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress))
                 {
-                    using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress))
-                    {
-                        deflateStream.Write(data, 0, data.Length);
-                    }
-                    return memoryStream.ToArray();
+                    deflateStream.Write(data, 0, data.Length);
                 }
-            }
-            catch
-            {
-                return null;
+
+                return memoryStream.ToArray();
             }
         }
     }
