@@ -19,12 +19,14 @@ namespace Embedix.Core
         /// </summary>
         /// <param name="context">The context of the assembly that receives the embedded libraries.</param>
         /// <param name="librarys">Paths of the library files to embed. Each is deflate-compressed and stored as a resource named <c>Embedded.&lt;file name&gt;</c>.</param>
+        /// <param name="typeName">The name of the type to merge.</param>
+        /// <param name="namespace">The namespace of the type to merge.</param>
         /// <remarks>
         ///     After the resources are added, the payload module matching the target's core library is
         ///     loaded, its <c>AssemblyResolver</c> type is merged into the target, and a call to its
         ///     <c>Resolve</c> method is inserted at the start of the module static constructor. If the merge does not produce a copy (for example because the type was already injected), no call is inserted.
         /// </remarks>
-        public static void Execute(AssemblyContext context, string[] librarys)
+        public static void Execute(AssemblyContext context, string[] librarys, string typeName = "AssemblyResolver", string @namespace = "Embedix")
         {
             //Embedding libraries into resources for dynamic usage
             foreach (var path in librarys)
@@ -43,7 +45,7 @@ namespace Embedix.Core
 
                 var typeDef = payloadModule.Find("Embedix.Core.Payload.AssemblyResolver", false);
 
-                var copyTypeDef = context.Merge(typeDef, "AssemblyResolver", "Embedix") ?? throw new InvalidOperationException("Failed to inject the AssemblyResolver payload.");
+                var copyTypeDef = context.Merge(typeDef, typeName, @namespace) ?? throw new InvalidOperationException("Failed to inject the AssemblyResolver payload.");
                 if (copyTypeDef != null)
                 {
                     var method = copyTypeDef.Methods.Single(m => m.Name == "Resolve");
