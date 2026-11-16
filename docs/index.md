@@ -31,8 +31,20 @@ dotnet add package Embedix.Core
 
 ## Documentation
 
+**Using Embedix**
+
+- [**Getting Started**](articles/getting-started.md) — Install and embed your first assembly in minutes.
+- [**CLI Usage Guide**](articles/cli.md) — Every command and option of the command-line tool.
+- [**CLI Scripting Guide**](articles/cli-scripting.md) — PowerShell, Bash, batch and MSBuild examples.
+- [**GitHub Actions**](articles/github-actions.md) — Ready-to-use CI/CD workflows.
+- [**Embedix.Core (NuGet)**](articles/core.md) — Install the library and use it from code, with samples.
+- [**GUI Guide**](articles/gui.md) — Use the Windows desktop application.
+- [**How It Works**](articles/how-it-works.md) — What Embedix changes in your assembly.
+- [**FAQ and Troubleshooting**](articles/faq.md) — Common problems and answers.
+
+**Reference and contributing**
+
 - [**API Reference**](xref:Embedix.Core) — Explore classes, methods, and namespaces.
-- [**CLI Usage Guide**](articles/cli.md) — Learn how to use Embedix from the command line.
 - [**Build Guide**](articles/build.md) — Learn how to build Embedix for Windows, macOS, and Linux.
 - [**Documentation Guide**](articles/documentation.md) — Learn how to build and preview the documentation locally.
 

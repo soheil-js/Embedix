@@ -29,13 +29,13 @@ Before generating the documentation, follow the [Build Guide](build.md) to compi
 Once the build is complete, generate the API metadata:
 
 ```bash
-dotnet tool run docfx metadata docs/docfx.json
+dotnet docfx metadata docs/docfx.json
 ```
 
 Build the documentation website:
 
 ```bash
-dotnet tool run docfx build docs/docfx.json
+dotnet docfx build docs/docfx.json
 ```
 
 The generated website will be available in:
@@ -49,7 +49,7 @@ docs/_site/
 Start the local DocFX server:
 
 ```bash
-dotnet tool run docfx serve docs/_site
+dotnet docfx serve docs/_site
 ```
 
 Open the local URL displayed in the terminal to preview the documentation.

@@ -1,8 +1,29 @@
-- name: Build Guide
-  href: build.md
+- name: Getting Started
+  href: getting-started.md
 
 - name: CLI Usage Guide
   href: cli.md
+
+- name: CLI Scripting Guide
+  href: cli-scripting.md
+
+- name: GitHub Actions
+  href: github-actions.md
+
+- name: Embedix.Core (NuGet)
+  href: core.md
+
+- name: GUI Guide
+  href: gui.md
+
+- name: How It Works
+  href: how-it-works.md
+
+- name: FAQ and Troubleshooting
+  href: faq.md
+
+- name: Build Guide
+  href: build.md
 
 - name: Documentation Guide
   href: documentation.md
